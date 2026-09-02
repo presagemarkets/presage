@@ -1,0 +1,25 @@
+node_modules/
+.next/
+.env
+.env.local
+contracts/out/
+contracts/cache/
+tsconfig.tsbuildinfo
+
+.vercel
+.treasury-wallet.json
+.seed-wallets.json
+.presage-wallet.json
+
+# all local env files stay private; only the template is published
+.env*
+!.env.example
+
+# internal operational scripts — seeding, treasury/owner rotation, wallet gen.
+# Kept locally, never published (contains no keys, but reveals private ops).
+scripts/
+
+# foundry deploy artifacts (tx history, deployer address) — regenerated locally
+contracts/broadcast/
+
+*.log
