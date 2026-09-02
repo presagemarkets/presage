@@ -88,6 +88,42 @@ export async function fetchCreators(client: PublicClient): Promise<Map<number, `
   return creatorCache;
 }
 
+export interface Bettor {
+  address: `0x${string}`;
+  side: 0 | 1;
+  amount: bigint;
+}
+const betEvent = parseAbiItem("event Bet(uint256 indexed id, address indexed user, uint8 side, uint128 amount)");
+
+/** Who bet on a market, aggregated per (wallet, side) — heaviest stake first. */
+export async function fetchBettors(id: number): Promise<Bettor[]> {
+  if (!PRESAGE_ADDRESS) return [];
+  try {
+    const raw = await fetchContractLogs(PRESAGE_ADDRESS);
+    const agg = new Map<string, bigint>(); // key: `${address}:${side}`
+    for (const log of raw) {
+      let dec;
+      try {
+        dec = decodeEventLog({ abi: [betEvent], topics: log.topics as [`0x${string}`, ...`0x${string}`[]], data: log.data });
+      } catch {
+        continue; // not a Bet log
+      }
+      if (Number(dec.args.id) !== id) continue;
+      const key = `${(dec.args.user as string).toLowerCase()}:${dec.args.side}`;
+      agg.set(key, (agg.get(key) ?? 0n) + (dec.args.amount as bigint));
+    }
+    const out: Bettor[] = [];
+    for (const [key, amount] of agg) {
+      const [address, side] = key.split(":");
+      out.push({ address: address as `0x${string}`, side: Number(side) as 0 | 1, amount });
+    }
+    out.sort((a, b) => (a.amount < b.amount ? 1 : a.amount > b.amount ? -1 : 0));
+    return out;
+  } catch {
+    return [];
+  }
+}
+
 export type Status = "open" | "locked" | "resolvable" | "resolved" | "canceled";
 
 export function status(m: Market, now = Date.now() / 1000): Status {

@@ -6,6 +6,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useExportWallet } from "@privy-io/react-auth";
 import { QRCodeSVG } from "qrcode.react";
 import { encodeFunctionData, formatEther, parseEther } from "viem";
 import { robinhoodChain, USDG } from "../../src/chain.ts";
@@ -18,6 +19,7 @@ import { PROFILE_REGISTRY_ADDRESS, profileRegistryAbi } from "../../src/registry
 
 export default function ProfilePage() {
   const w = useWallet();
+  const { exportWallet } = useExportWallet();
   const [profile, setProfile] = useState<LocalProfile>({});
   const [nameDraft, setNameDraft] = useState("");
   const [balances, setBalances] = useState<{ eth: bigint; usdg: bigint } | null>(null);
@@ -211,7 +213,26 @@ export default function ProfilePage() {
             >
               Copy
             </button>
+            <button
+              className="btn ghost"
+              style={{ padding: "5px 10px", fontSize: 12, borderColor: "rgba(248,113,113,0.4)", color: "#f87171" }}
+              onClick={() =>
+                void (async () => {
+                  try {
+                    await exportWallet({ address: addr });
+                  } catch {
+                    setNote("Key export isn't available for this wallet.");
+                  }
+                })()
+              }
+            >
+              Export key
+            </button>
           </div>
+          <p className="muted" style={{ fontSize: 11, marginTop: 8, lineHeight: 1.5 }}>
+            Opens a secure Privy window with your private key so you can copy it into another wallet. Never share it —
+            anyone who has it controls your funds.
+          </p>
         </div>
 
         {/* ---- balances ---- */}

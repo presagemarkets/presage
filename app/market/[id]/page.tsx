@@ -1,6 +1,7 @@
 "use client";
 
 import { use, useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import { encodeFunctionData } from "viem";
 import { USDG } from "../../../src/chain.ts";
 import { PRESAGE_ADDRESS, presageAbi, erc20Abi } from "../../../src/presage.ts";
@@ -20,6 +21,13 @@ import { Countdown } from "../../countdown.tsx";
 import { tickerOf, tickersOf, ClockIcon, VolIcon } from "../../ui.tsx";
 import { StockLogo } from "../../logo.tsx";
 import { StockChart } from "../../chart.tsx";
+import { Avatar, nameOf } from "../../avatar.tsx";
+
+interface BettorRow {
+  address: `0x${string}`;
+  side: number;
+  amount: string;
+}
 
 interface NewsItem {
   title: string;
@@ -114,6 +122,18 @@ export default function MarketPage({ params }: { params: Promise<{ id: string }>
       .then((d: { items?: NewsItem[] }) => setNews(d.items ?? []))
       .catch(() => {});
   }, [ticker]);
+
+  const [bettors, setBettors] = useState<BettorRow[]>([]);
+  useEffect(() => {
+    const grab = () =>
+      void fetch(`/api/bettors?id=${marketId}`)
+        .then((r) => r.json())
+        .then((d: { bettors?: BettorRow[] }) => setBettors(d.bettors ?? []))
+        .catch(() => {});
+    grab();
+    const t = setInterval(grab, 15_000);
+    return () => clearInterval(t);
+  }, [marketId]);
 
   const run = useCallback(
     async (label: string, fn: () => Promise<void>) => {
@@ -375,6 +395,54 @@ export default function MarketPage({ params }: { params: Promise<{ id: string }>
             </p>
           </div>
         )}
+
+        {/* ---- who's betting: wallet · side · total staked ---- */}
+        <div className="glow-card" style={{ display: "grid", gap: 12 }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <p style={{ fontSize: 15, fontWeight: 700 }}>Bettors</p>
+            <span className="muted num" style={{ fontSize: 12 }}>{bettors.length}</span>
+          </div>
+          {bettors.length === 0 ? (
+            <p className="muted" style={{ fontSize: 13 }}>No bets yet — be the first.</p>
+          ) : (
+            <div style={{ display: "grid", gap: 11 }}>
+              {bettors.map((b) => (
+                <Link
+                  key={`${b.address}-${b.side}`}
+                  href={`/u/${b.address}`}
+                  className="lb-row"
+                  style={{ display: "flex", alignItems: "center", gap: 10, padding: "6px 8px", margin: "0 -8px", borderRadius: 9, color: "inherit" }}
+                >
+                  <Avatar address={b.address} size={28} />
+                  <span style={{ flex: 1, minWidth: 0 }}>
+                    <span style={{ fontSize: 13, fontWeight: 600, display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {nameOf(b.address)}
+                    </span>
+                    <span className="muted" style={{ fontSize: 11, fontFamily: "ui-monospace, monospace" }}>
+                      {b.address.slice(0, 6)}…{b.address.slice(-4)}
+                    </span>
+                  </span>
+                  <span
+                    className="num"
+                    style={{
+                      fontSize: 11,
+                      fontWeight: 700,
+                      color: b.side === 1 ? "#4ade80" : "#f87171",
+                      border: `1px solid ${b.side === 1 ? "rgba(74,222,128,0.3)" : "rgba(248,113,113,0.3)"}`,
+                      borderRadius: 999,
+                      padding: "2px 8px",
+                    }}
+                  >
+                    {b.side === 1 ? "YES" : "NO"}
+                  </span>
+                  <span className="num" style={{ fontSize: 12, fontWeight: 600, minWidth: 62, textAlign: "right" }}>
+                    {fmtUSDG(BigInt(b.amount))}
+                  </span>
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
 
         {st === "resolvable" && (
           <div className="glow-card" style={{ display: "grid", gap: 12 }}>
