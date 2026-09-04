@@ -326,6 +326,7 @@ export function Docs() {
           PRESAGE <small>DOCS</small>
         </a>
         <span style={{ flex: 1 }} />
+        <a href="/roadmap" className="dn-link">Roadmap</a>
         <a href={`${APP}/markets`} className="dn-cta">Open market ↗</a>
       </nav>
 

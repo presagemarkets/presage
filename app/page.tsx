@@ -97,11 +97,34 @@ function Nav({ scrolled }: { scrolled: boolean }) {
         <span className="lnav-div" />
         <a href={`${APP}/markets`} className="lnav-link">Markets</a>
         <a href={`${APP}/showdown`} className="lnav-link">Showdown</a>
+        <a href="/roadmap" className="lnav-link">Roadmap</a>
         <a href={`${APP}/stats`} className="lnav-link">Stats</a>
         <span className="lnav-div" />
         <a href={APP} className="lnav-cta">Enter app ↗</a>
       </div>
     </nav>
+  );
+}
+
+// Token contract address — click to copy.
+const CA = "0x17447b96fca558003634b838484299b5aa9bc6d6";
+function CaPill() {
+  const [copied, setCopied] = useState(false);
+  return (
+    <button
+      type="button"
+      className="ca-pill blur-in"
+      title="Copy contract address"
+      onClick={() => {
+        void navigator.clipboard?.writeText(CA);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1600);
+      }}
+    >
+      <span className="ca-tag">CA</span>
+      <span className="ca-addr">{CA}</span>
+      <span className="ca-act">{copied ? "Copied ✓" : "Copy"}</span>
+    </button>
   );
 }
 
@@ -149,6 +172,9 @@ function Hero() {
           <a href="#features" className="lnav-link" style={{ border: "1px solid var(--border-strong)", padding: "13px 26px", fontSize: 14, color: "var(--text)" }}>
             How it works
           </a>
+        </div>
+        <div style={{ display: "flex", justifyContent: "center" }}>
+          <CaPill />
         </div>
       </div>
       <div style={{ position: "absolute", bottom: 34, left: "50%", transform: "translateX(-50%)", zIndex: 2, display: "grid", justifyItems: "center", gap: 10 }}>
@@ -342,7 +368,7 @@ function Explorations() {
 }
 
 const STATS = [
-  { n: "28", l: "Tokenized stocks", s: "Deep-pool names, TWAP-verified" },
+  { n: "34", l: "Tokenized stocks", s: "Deep-pool names, TWAP-verified" },
   { n: "3", l: "Market templates", s: "Up/down · over/under · duel" },
   { n: "2%", l: "House fee", s: "Only on the losing pot" },
 ];
