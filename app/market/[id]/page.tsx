@@ -152,6 +152,20 @@ export default function MarketPage({ params }: { params: Promise<{ id: string }>
     [load]
   );
 
+  const shareMarket = async () => {
+    const url = window.location.href;
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: "Presage market", text: m ? m.question : "Join this market on Presage", url });
+      } else {
+        await navigator.clipboard?.writeText(url);
+        setNote({ ok: true, text: "Market link copied — share it to invite friends to bet." });
+      }
+    } catch {
+      /* share dialog dismissed — nothing to do */
+    }
+  };
+
   const placeBet = () => {
     const amt = parseUSDG(amount);
     if (!amt) {
@@ -209,7 +223,23 @@ export default function MarketPage({ params }: { params: Promise<{ id: string }>
               </span>
             )}
           </span>
-          <span className={`chip ${st}`} style={{ flexShrink: 0, whiteSpace: "nowrap" }}>{STATUS_LABEL[st]}</span>
+          <span style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+            <button
+              className="btn ghost"
+              style={{ padding: "6px 12px", fontSize: 12, display: "inline-flex", alignItems: "center", gap: 6, whiteSpace: "nowrap" }}
+              onClick={() => void shareMarket()}
+              title="Share this market — invite others to bet"
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <circle cx="18" cy="5" r="3" />
+                <circle cx="6" cy="12" r="3" />
+                <circle cx="18" cy="19" r="3" />
+                <path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4" />
+              </svg>
+              Share
+            </button>
+            <span className={`chip ${st}`} style={{ whiteSpace: "nowrap" }}>{STATUS_LABEL[st]}</span>
+          </span>
         </div>
         <h1 style={{ fontSize: "clamp(19px, 4.8vw, 24px)", lineHeight: 1.25, letterSpacing: "-0.01em", textWrap: "balance" }}>
           {m.question}
